@@ -65,7 +65,7 @@ namespace EmmyLuaSnippetGenerator
     {
         private SettingOptions _options;
 
-        [MenuItem("LuaType/设置")]
+        [MenuItem("Window/EmmyLuaAnnotation/设置")]
         public static void ShowWindow()
         {
             GetWindow<SettingsWindow>("Lua类型注解文件设置");
