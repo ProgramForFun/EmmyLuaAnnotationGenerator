@@ -1,4 +1,4 @@
-# Lua Type Hint Generator (Unity)
+# EmmyLua Annotation Generator
 
 
 
@@ -8,14 +8,6 @@
 
 
 
-## 参考
-
-本项目自以下工程fork而来, 我在此基础上增加了一些实用功能并修复了些许Bug.
-
-[ak47007tiger/EmmyLuaXLuaSnippetGenerator: generate xlua snippet for emmylua](https://github.com/ak47007tiger/EmmyLuaXLuaSnippetGenerator)
-
-赞颂原作者的开源精神!
-
 ### 新功能
 
 - [支持推理泛型字段类型的功能.](#泛型)
@@ -24,18 +16,11 @@
 - [支持将类型注解文件生成为多个, 提升编辑器中类型推断的性能.](#性能)
 - [支持全局变量生成](#全局)和xLua的typeof函数生成.
 - [编辑器内的简易GUI工具](#设置), 允许将生成注解的选项保存为本地配置文件, 免去需要修改源代码的麻烦.
-
-### 问题修复
-
-- 修复部分静态函数仍会生成self参数的问题.
-- 修复泛型类型信息尾缀清除错误的问题.
-- 不再生成匿名类型的注解.
-
   
 
 ## 使用
 
-克隆本工程到你的项目目录下. 在Unity编辑器顶部的"LuaType"菜单中使用它. 请先 [设置] 再 [生成注解文件].
+克隆本工程到你的项目目录下. 在Unity编辑器顶部的"Window/EmmyLuaAnnotation"菜单中使用它. 请先 [设置] 再 [生成注解文件].
 
 每次生成注解文件时, 程序会自动清空目标目录, 你也可以点击 [清除类型注解] 来手动清除它们.
 

@@ -64,7 +64,7 @@ namespace EmmyLuaSnippetGenerator
         private static readonly Dictionary<Type, List<MethodInfo>>
         extensionMethodsDic = new Dictionary<Type, List<MethodInfo>>();
 
-        [MenuItem("LuaType/生成EmmyLua类型注解")]
+        [MenuItem("Window/EmmyLuaAnnotation/生成")]
         public static void GenerateEmmyTypeFiles()
         {
             if (!XmlHelper.TryLoadConfig(SettingOptions.SavePath, out SettingOptions loaded))
@@ -111,7 +111,7 @@ namespace EmmyLuaSnippetGenerator
             Debug.Log("生成注解文件完毕.");
         }
 
-        [MenuItem("LuaType/清除EmmyLua类型注解")]
+        [MenuItem("Window/EmmyLuaAnnotation/清除")]
         public static void ClearEmmyTypeFiles()
         {
             if (!XmlHelper.TryLoadConfig(SettingOptions.SavePath, out SettingOptions loaded))
