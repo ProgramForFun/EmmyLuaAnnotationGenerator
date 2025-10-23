@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<SettingOptions xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <GeneratePath>LuaProject/gen/EmmyLuaAnnotation</GeneratePath>
+  <TargetNamespacesStr>UnityEngine</TargetNamespacesStr>
+  <GenerateCSAlias>false</GenerateCSAlias>
+  <InferGenericFieldType>true</InferGenericFieldType>
+  <SingleFileMaxLine>3000</SingleFileMaxLine>
+</SettingOptions>
