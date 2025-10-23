@@ -180,7 +180,7 @@ namespace EmmyLuaAnnotationGenerator
 			);
 			_options.SingleFileMaxLine = (int)EditorGUILayout.Slider(
 				_options.SingleFileMaxLine,
-				5000,
+				3000,
 				40000,
 				GUILayout.MinWidth(200)
 			);
