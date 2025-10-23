@@ -111,7 +111,6 @@ namespace EmmyLuaAnnotationGenerator
 			Debug.Log("生成注解文件完毕.");
 		}
 
-		[MenuItem("Window/EmmyLuaAnnotation/清除")]
 		public static void ClearEmmyTypeFiles()
 		{
 			if (!XmlHelper.TryLoadConfig(SettingOptions.SavePath, out SettingOptions loaded))
