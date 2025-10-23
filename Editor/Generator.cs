@@ -9,7 +9,7 @@ using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEngine;
 
-namespace EmmyLuaSnippetGenerator
+namespace EmmyLuaAnnotationGenerator
 {
 	/// <summary>
 	/// 该文件只用来给ide进行lua类型提示的,不要在运行时require该文件或者打包到版本中.

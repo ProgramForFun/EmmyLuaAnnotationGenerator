@@ -5,7 +5,7 @@ using System;
 using System.Linq;
 using System.Diagnostics;
 
-namespace EmmyLuaSnippetGenerator
+namespace EmmyLuaAnnotationGenerator
 {
 	[Serializable]
 	public sealed class SettingOptions

@@ -2,7 +2,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Xml.Serialization;
 
-namespace EmmyLuaSnippetGenerator
+namespace EmmyLuaAnnotationGenerator
 {
     public static class XmlHelper
     {
