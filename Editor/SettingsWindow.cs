@@ -1,214 +1,211 @@
 using UnityEditor;
 using UnityEngine;
-using System.Xml;
 using System.IO;
 using System;
 using System.Linq;
+using System.Diagnostics;
 
 namespace EmmyLuaSnippetGenerator
 {
-    [Serializable]
-    public sealed class SettingOptions
-    {
-        public string GeneratePath;
-        public string TargetNamespacesStr;
-        public string GlobalVariablesStr;
-        public string FunctionCompatibleTypesStr;
-        public bool GenerateCSAlias = true;
-        public bool InferGenericFieldType = true;
-        public int SingleFileMaxLine = 5000;
+	[Serializable]
+	public sealed class SettingOptions
+	{
+		public string GeneratePath;
+		public string TargetNamespacesStr;
+		public string GlobalVariablesStr;
+		public string FunctionCompatibleTypesStr;
+		public bool GenerateCSAlias = true;
+		public bool InferGenericFieldType = true;
+		public int SingleFileMaxLine = 5000;
 
-        private static string _saveRootPath = null;
-        public static string SaveRootPath
-        {
-            get => string.IsNullOrWhiteSpace(_saveRootPath)
-                ? AppDomain.CurrentDomain.BaseDirectory
-                : _saveRootPath;
-            set => _saveRootPath = value;
-        }
-        public static string SavePath => Path.Combine(SaveRootPath, "EmmyLuaSnippetToolData", "config.xml");
+		public static string SavePath => Path.Combine(GetCurrentScriptDirectory(), "config.xml");
 
-        public string[] GetTargetNamespaces()
-        {
-            if (string.IsNullOrWhiteSpace(TargetNamespacesStr))
-            {
-                return Array.Empty<string>();
-            }
+		/// <summary>
+		/// 获取调用此函数的C#类，所在的路径
+		/// </summary>
+		public static string GetCurrentScriptDirectory()
+		{
+			// 获取调用堆栈
+			StackTrace stackTrace = new StackTrace(true);
+			// 跳过当前方法（GetCurrentScriptDirectory）的帧
+			for (int i = 1; i < stackTrace.FrameCount; i++)
+			{
+				StackFrame frame = stackTrace.GetFrame(i);
+				string fileName = frame.GetFileName();
 
-            return TargetNamespacesStr.Split(' ');
-        }
+				// 确保文件名不为空且是.cs文件
+				if (!string.IsNullOrEmpty(fileName) && fileName.EndsWith(".cs"))
+				{
+					return Path.GetDirectoryName(fileName);
+				}
+			}
+			return null;
+		}
 
-        // varName, typeName
-        public (string, string)[] GetGlobalVariables()
-        {
-            if (string.IsNullOrWhiteSpace(GlobalVariablesStr))
-            {
-                return Array.Empty<(string, string)>();
-            }
+		public string[] GetTargetNamespaces()
+		{
+			if (string.IsNullOrWhiteSpace(TargetNamespacesStr))
+			{
+				return Array.Empty<string>();
+			}
 
-            var varInfos = GlobalVariablesStr.Split(' ');
-            return varInfos.Select(info => info.Split(':')).Select(info => (info[0], info[1])).ToArray();
-        }
+			return TargetNamespacesStr.Split(' ');
+		}
 
-        public string[] GetFunctionCompatibleTypes()
-        {
-            if (string.IsNullOrWhiteSpace(FunctionCompatibleTypesStr))
-            {
-                return Array.Empty<string>();
-            }
+		// varName, typeName
+		public (string, string)[] GetGlobalVariables()
+		{
+			if (string.IsNullOrWhiteSpace(GlobalVariablesStr))
+			{
+				return Array.Empty<(string, string)>();
+			}
 
-            return FunctionCompatibleTypesStr.Split(' ');
-        }
-    }
+			var varInfos = GlobalVariablesStr.Split(' ');
+			return varInfos.Select(info => info.Split(':')).Select(info => (info[0], info[1])).ToArray();
+		}
 
-    public sealed class SettingsWindow : EditorWindow
-    {
-        private SettingOptions _options;
+		public string[] GetFunctionCompatibleTypes()
+		{
+			if (string.IsNullOrWhiteSpace(FunctionCompatibleTypesStr))
+			{
+				return Array.Empty<string>();
+			}
 
-        [MenuItem("Window/EmmyLuaAnnotation/设置")]
-        public static void ShowWindow()
-        {
-            GetWindow<SettingsWindow>("Lua类型注解文件设置");
-        }
+			return FunctionCompatibleTypesStr.Split(' ');
+		}
+	}
 
-        private void OnEnable()
-        {
-            if (XmlHelper.TryLoadConfig(SettingOptions.SavePath, out SettingOptions settings))
-            {
-                _options = settings;
-            }
-            else
-            {
-                _options = new();
-            }
-        }
+	public sealed class SettingsWindow : EditorWindow
+	{
+		private SettingOptions _options;
 
-        private void OnGUI()
-        {
-            GUILayout.Space(20);
+		[MenuItem("Window/EmmyLuaAnnotation/设置")]
+		public static void ShowWindow()
+		{
+			GetWindow<SettingsWindow>("Lua类型注解文件设置");
+		}
 
-            GUILayout.Label(
-                "配置文件的存放路径"
-            );
-            EditorGUILayout.BeginHorizontal();
-            GUI.enabled = false;
-            SettingOptions.SaveRootPath = EditorGUILayout.TextField(
-                SettingOptions.SaveRootPath,
-                GUILayout.MinWidth(200)
-            );
-            GUI.enabled = true;
-            if (GUILayout.Button("...", GUILayout.Width(50)))
-            {
-                SettingOptions.SaveRootPath = EditorUtility.OpenFolderPanel("选择配置文件存放路径", "", "");
-            };
-            EditorGUILayout.EndHorizontal();
+		private void OnEnable()
+		{
+			if (XmlHelper.TryLoadConfig(SettingOptions.SavePath, out SettingOptions settings))
+			{
+				_options = settings;
+			}
+			else
+			{
+				_options = new();
+			}
+		}
 
-            GUILayout.Space(10);
+		private void OnGUI()
+		{
+			GUILayout.Space(10);
 
-            GUILayout.Label(
-                "生成类型注解文件的路径"
-            );
-            EditorGUILayout.BeginHorizontal();
-            GUI.enabled = false;
-            _options.GeneratePath = EditorGUILayout.TextField(
-                _options.GeneratePath,
-                GUILayout.MinWidth(200)
-            );
-            GUI.enabled = true;
-            if (GUILayout.Button("...", GUILayout.Width(50)))
-            {
-                _options.GeneratePath = EditorUtility.OpenFolderPanel("选择生成类型注解文件路径", "", "");
-            };
-            EditorGUILayout.EndHorizontal();
+			GUILayout.Label(
+				"生成类型注解文件的路径"
+			);
+			EditorGUILayout.BeginHorizontal();
+			GUI.enabled = false;
+			_options.GeneratePath = EditorGUILayout.TextField(
+				_options.GeneratePath,
+				GUILayout.MinWidth(200)
+			);
+			GUI.enabled = true;
+			if (GUILayout.Button("...", GUILayout.Width(50)))
+			{
+				_options.GeneratePath = EditorUtility.OpenFolderPanel("选择生成类型注解文件路径", "", "");
+			}
+			;
+			EditorGUILayout.EndHorizontal();
 
-            GUILayout.Space(10);
+			GUILayout.Space(10);
 
-            GUILayout.Label(
-                "要生成注解的C#命名空间"
-                + "\n- 多个命名空间用空格分隔"
-                + "\n- 例如: UnityEngine DG FairyGUI"
-            );
-            _options.TargetNamespacesStr = EditorGUILayout.TextField(
-                _options.TargetNamespacesStr,
-                GUILayout.MinWidth(200)
-            );
+			GUILayout.Label(
+				"要生成注解的C#命名空间"
+				+ "\n- 多个命名空间用空格分隔"
+				+ "\n- 例如: UnityEngine DG FairyGUI"
+			);
+			_options.TargetNamespacesStr = EditorGUILayout.TextField(
+				_options.TargetNamespacesStr,
+				GUILayout.MinWidth(200)
+			);
 
-            GUILayout.Space(10);
+			GUILayout.Space(10);
 
-            GUILayout.Label(
-                "要生成注解的全局变量"
-                + "\n- 变量名:类型名, 多个组用空格分隔"
-                + "\n- 例如: UNITY_EDITOR:boolean DEBUG_LV:integer"
-            );
-            _options.GlobalVariablesStr = EditorGUILayout.TextField(
-                _options.GlobalVariablesStr,
-                GUILayout.MinWidth(200)
-            );
+			GUILayout.Label(
+				"要生成注解的全局变量"
+				+ "\n- 变量名:类型名, 多个组用空格分隔"
+				+ "\n- 例如: UNITY_EDITOR:boolean DEBUG_LV:integer"
+			);
+			_options.GlobalVariablesStr = EditorGUILayout.TextField(
+				_options.GlobalVariablesStr,
+				GUILayout.MinWidth(200)
+			);
 
-            GUILayout.Space(10);
+			GUILayout.Space(10);
 
-            GUILayout.Label(
-                "使以下类型名兼容Lua function类型"
-                + "\n- 多个类型名用空格分隔"
-                + "\n- 例如: System.Action FairyGUI.EventCallback0"
-            );
-            _options.FunctionCompatibleTypesStr = EditorGUILayout.TextField(
-                _options.FunctionCompatibleTypesStr,
-                GUILayout.MinWidth(200)
-            );
+			GUILayout.Label(
+				"使以下类型名兼容Lua function类型"
+				+ "\n- 多个类型名用空格分隔"
+				+ "\n- 例如: System.Action FairyGUI.EventCallback0"
+			);
+			_options.FunctionCompatibleTypesStr = EditorGUILayout.TextField(
+				_options.FunctionCompatibleTypesStr,
+				GUILayout.MinWidth(200)
+			);
 
-            GUILayout.Space(10);
+			GUILayout.Space(10);
 
-            GUILayout.Label(
-                "生成带CS.前缀的兼容alias"
-                + "\n- 启用后, 将为生成的类型名额外添加带CS.前缀的版本"
-            );
-            _options.GenerateCSAlias = EditorGUILayout.Toggle(_options.GenerateCSAlias);
-            
-            GUILayout.Space(10);
+			GUILayout.Label(
+				"生成带CS.前缀的兼容alias"
+				+ "\n- 启用后, 将为生成的类型名额外添加带CS.前缀的版本"
+			);
+			_options.GenerateCSAlias = EditorGUILayout.Toggle(_options.GenerateCSAlias);
 
-            GUILayout.Label(
-                "尝试推理泛型字段类型"
-                + "\n- 启用后, 将在继承泛型类的非泛型派生中添加泛型字段的类型"
-                + "\n- 显著影响注解生成速度, 但不影响类型分析性能"
-            );
-            _options.InferGenericFieldType = EditorGUILayout.Toggle(_options.InferGenericFieldType);
+			GUILayout.Space(10);
 
-            GUILayout.Space(10);
+			GUILayout.Label(
+				"尝试推理泛型字段类型"
+				+ "\n- 启用后, 将在继承泛型类的非泛型派生中添加泛型字段的类型"
+				+ "\n- 显著影响注解生成速度, 但不影响类型分析性能"
+			);
+			_options.InferGenericFieldType = EditorGUILayout.Toggle(_options.InferGenericFieldType);
 
-            GUILayout.Label(
-                "单个注解文件的最大行数"
-                + "\n- 超过该行数时会自动拆分成多个文件"
-                + "\n- 大幅影响类型分析性能, 请依据电脑配置设置"
-            );
-            _options.SingleFileMaxLine = (int)EditorGUILayout.Slider(
-                _options.SingleFileMaxLine,
-                5000,
-                40000,
-                GUILayout.MinWidth(200)
-            );
+			GUILayout.Space(10);
 
-            GUILayout.Space(20);
+			GUILayout.Label(
+				"单个注解文件的最大行数"
+				+ "\n- 超过该行数时会自动拆分成多个文件"
+				+ "\n- 大幅影响类型分析性能, 请依据电脑配置设置"
+			);
+			_options.SingleFileMaxLine = (int)EditorGUILayout.Slider(
+				_options.SingleFileMaxLine,
+				5000,
+				40000,
+				GUILayout.MinWidth(200)
+			);
 
-            if (GUILayout.Button("保存配置文件"))
-            {
-                try
-                {
-                    XmlHelper.SaveConfig(_options, SettingOptions.SavePath);
-                    this.Close();
-                }
-                catch (UnauthorizedAccessException e)
-                {
-                    Debug.LogError($"错误: 没有对目录 {SettingOptions.SaveRootPath} 的操作权限. 尝试修改配置文件的存放路径.\n{e.StackTrace}");
-                }
-            }
+			GUILayout.Space(20);
 
-            if (GUILayout.Button("取消"))
-            {
-                this.Close();
-            }
-        }
-    }
+			if (GUILayout.Button("保存配置文件"))
+			{
+				try
+				{
+					XmlHelper.SaveConfig(_options, SettingOptions.SavePath);
+					this.Close();
+				}
+				catch (UnauthorizedAccessException e)
+				{
+					UnityEngine.Debug.LogError($"错误: 没有对目录 {SettingOptions.SavePath} 的操作权限. 尝试修改配置文件的存放路径.\n{e.StackTrace}");
+				}
+			}
+
+			if (GUILayout.Button("取消"))
+			{
+				this.Close();
+			}
+		}
+	}
 }
 
 
