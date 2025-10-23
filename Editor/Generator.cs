@@ -127,7 +127,7 @@ namespace EmmyLuaAnnotationGenerator
 			}
 
 			int count = 0;
-			string[] files = Directory.GetFiles(_options.GeneratePath, "TypeHint_*.lua");
+			string[] files = Directory.GetFiles(_options.GeneratePath, "EmmyLuaAnnotation_*.lua");
 
 			foreach (string file in files)
 			{
@@ -315,7 +315,7 @@ namespace EmmyLuaAnnotationGenerator
 			{
 				if (writer == null)
 				{
-					fileName = _options.GeneratePath + "/" + "TypeHint_" + fileCount + ".lua";
+					fileName = _options.GeneratePath + "/" + "EmmyLuaAnnotation_" + fileCount + ".lua";
 					writer = new StreamWriter(fileName);
 					writer.WriteLine("---@meta");
 					writer.WriteLine("");
